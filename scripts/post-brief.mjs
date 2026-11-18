@@ -17,9 +17,10 @@ async function waitForServer(url, timeoutMs = 30_000) {
 }
 
 await waitForServer(BASE);
+const t0 = Date.now();
 const res = await fetch(`${BASE}/api/briefs`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(body),
 });
-console.log(res.status, await res.text());
+console.log(res.status, `${Date.now() - t0}ms`, await res.text());

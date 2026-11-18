@@ -19,7 +19,7 @@ email (they are intentionally not stored in this repo).
 | AI | Google Gemini via `@google/genai` + deterministic mock fallback | genai 3.6.0 · `gemini-3.5-flash-lite` |
 | Auth | iron-session (signed cookie) + bcryptjs (hash in env) | 9.1.0 / 3.0.3 |
 | Styling | Tailwind CSS (plain components — no component library) | 4.3.3 |
-| Tests | Vitest (23 tests) + HTTP smoke scripts | 5.1.1 |
+| Tests | Vitest (29 tests) + HTTP smoke scripts | 5.1.1 |
 
 Node >= 22.13 is required (`iron-session` engine constraint; local dev used Node 24).
 
@@ -49,7 +49,7 @@ npm run dev                        # http://localhost:3000
 | `DATABASE_URL` | yes | App connection. Prod: Neon **pooled** URL. Local: `postgresql://briefflow:briefflow@localhost:5432/briefflow` |
 | `DATABASE_URL_DIRECT` | prod only | Neon direct (non-pooled) URL, used solely for `prisma migrate deploy` |
 | `GEMINI_API_KEY` | for real AI | From aistudio.google.com. Empty + `AI_PROVIDER=gemini` → briefs fail honestly |
-| `GEMINI_MODEL` | no | Defaults to `gemini-3.8-flash` |
+| `GEMINI_MODEL` | no | Defaults to `gemini-3.5-flash-lite` |
 | `AI_PROVIDER` | yes | `gemini` \| `mock`. `mock` = deterministic offline provider (dev/test) |
 | `ADMIN_EMAIL` | yes | The single admin login |
 | `ADMIN_PASSWORD_HASH` | yes | bcrypt: `node -e "console.log(require('bcryptjs').hashSync('pw',10))"` |
@@ -161,7 +161,7 @@ The user prompt appends the brief's needs/budget/timeline in Indonesian.
 ## Testing
 
 ```bash
-npm test          # 23 vitest tests (offline, no API key, mocked Prisma)
+npm test          # 29 vitest tests (offline, no API key, mocked Prisma)
 npm run build     # typecheck + prisma generate + production build
 node scripts/smoke-api.mjs        # HTTP contract of POST /api/briefs (server must run)
 node scripts/fetch-dashboard.mjs  # auth + filters + detail (server must run)

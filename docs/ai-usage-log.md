@@ -139,3 +139,20 @@ demi fakta runtime.
 **Verified:** `e2e-ai.mjs` terhadap Neon: POST 201 → `after()` → `SUCCESS`,
 `provider=gemini`, `model=gemini-3.5-flash-lite`, `BRANDING/HIGH`, summary Bahasa Indonesia.
 `gemini-3.5-flash-lite` 200 via raw REST; `gemini-3.8-flash` 503.
+
+---
+
+## 2026-11-18 — UI overhaul + perbaikan Docker (sore)
+
+**Tool:** Claude Code (Transformer) — workflow riset/desain (6 subagent: referensi visual, pola kontrol ARIA, audit kode, data style DB, design-director, skeptic critique) + implementasi inline.
+
+**Asked for:** perbaiki bug UI (background hitam & teks tertutup saat OS dark mode), overhaul visual, kontrol custom (dropdown/datepicker/modal) tanpa native browser, riset arah desain; lalu perbaiki kenapa `docker compose` tidak menampilkan UI baru.
+
+**Accepted:** diagnosis root cause (media query `prefers-color-scheme: dark` membalik background sementara semua halaman hardcode warna terang); arah neobrutalist "ink & marigold" (Space Grotesk + Public Sans, border keras + shadow, tanpa dependency baru); custom `Select`/`DatePicker`/`Dialog`; satu set token di `@theme`.
+
+**Changed (momen mengoreksi/menolak output AI):**
+1. Skeptic review menolak sebagian arah awal: marker "selected" kuning di atas putih (kontras 1.54:1, gagal WCAG) → diganti ink; focus ring yang menyatu dengan border → fokus kuning offset; hover `paper`≈`surface` (1.03:1) → wash lebih gelap.
+2. Kritikus menyarankan membuang Dialog logout + Toast (dianggap scope creep); Dialog **dipertahankan** karena user eksplisit minta styling modal — precedens user menang atas saran skill.
+3. `npm ci` gagal di Docker: lockfile yang digenerate macOS memangkas optional dep `wasm32-wasi` (`@emnapi/runtime` hilang) → fix `npm install` + `.dockerignore`, bukan regenerasi lockfile berulang yang platform-dependent.
+
+**Verified:** typecheck + lint + build + 29 test vitest hijau; CSS build tidak lagi mengandung `prefers-color-scheme` (hanya `prefers-reduced-motion`); container docker dibangun ulang & UI baru terkonfirmasi lewat marker DOM (`bg-sun`, `shadow-hard`, `font-display`).

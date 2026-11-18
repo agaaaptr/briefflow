@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/db";
 import { generateBriefSummary } from "@/lib/ai";
 import type { AiResult, BriefInput } from "@/lib/schema";
-import type { Priority, ServiceCategory } from "@/generated/prisma/enums";
+import type {
+  Priority,
+  ServiceCategory,
+  PipelineStatus,
+} from "@/generated/prisma/enums";
 
 export async function createBrief(input: BriefInput) {
   return prisma.brief.create({
@@ -30,6 +34,62 @@ const PRIORITY_TO_ENUM: Record<AiResult["priority"], Priority> = {
   Medium: "MEDIUM",
   Low: "LOW",
 };
+
+// ---- List + filter (server-side, dipakai dashboard & test) ----
+
+export type BriefFilter = { priority?: Priority; category?: ServiceCategory };
+
+const PRIORITIES_DB: Priority[] = ["HIGH", "MEDIUM", "LOW"];
+const CATEGORIES_DB: ServiceCategory[] = [
+  "BRANDING",
+  "WEBSITE",
+  "MOBILE_APP",
+  "AI_AUTOMATION",
+  "SOCIAL_MEDIA",
+  "LAINNYA",
+];
+
+/** Parse query params → filter tervalidasi; nilai tak dikenal diabaikan. */
+export function parseFilter(params: {
+  priority?: string;
+  category?: string;
+}): BriefFilter {
+  return {
+    priority: PRIORITIES_DB.includes(params.priority as Priority)
+      ? (params.priority as Priority)
+      : undefined,
+    category: CATEGORIES_DB.includes(params.category as ServiceCategory)
+      ? (params.category as ServiceCategory)
+      : undefined,
+  };
+}
+
+export async function listBriefs(filter: BriefFilter = {}) {
+  return prisma.brief.findMany({
+    where: {
+      ...(filter.priority ? { aiPriority: filter.priority } : {}),
+      ...(filter.category ? { aiCategory: filter.category } : {}),
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      company: true,
+      aiCategory: true,
+      aiPriority: true,
+      aiStatus: true,
+      pipelineStatus: true,
+      createdAt: true,
+    },
+  });
+}
+
+export async function getBrief(id: string) {
+  return prisma.brief.findUnique({ where: { id } });
+}
+
+export async function setPipelineStatus(id: string, status: PipelineStatus) {
+  await prisma.brief.update({ where: { id }, data: { pipelineStatus: status } });
+}
 
 /**
  * Memproses satu brief dengan AI dan menulis hasilnya (SUCCESS/FAILED).

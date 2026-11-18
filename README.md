@@ -5,8 +5,8 @@ briefs, an LLM summarizes and prioritizes each one into validated JSON, and an
 admin-only dashboard manages them through a sales pipeline
 (New → Contacted → Proposal → Won / Lost).
 
-**Live demo:** `<URL — added after deploy>` · admin credentials are sent by email
-(they are intentionally not stored in this repo).
+**Live demo:** https://briefflow-one.vercel.app · admin credentials are sent by
+email (they are intentionally not stored in this repo).
 
 ## Tech stack
 

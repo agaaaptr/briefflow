@@ -57,3 +57,26 @@ _Template per entri:_
 _Contoh yang WAJIB dicatat saat build (minimal 2 momen menolak/mengoreksi output AI):_
 - koreksi prompt/fallback mock saat output Gemini tidak match enum.
 - menolak snippet yang mengabaikan validasi server-side / revalidate-before-redirect.
+
+---
+
+## 2026-11-18 — Build session start: verifikasi versi + intake Noir
+
+**Tool:** Claude Code (Transformer) — workflow 9 subagent (WebSearch/WebFetch sumber primer) + chain noir-spec/plan.
+
+**Asked for:** Verifikasi semua klaim `[VERIFY]` riset awal sebelum scaffold, lalu intake ke spec + plan.
+
+**Accepted:** 21/24 klaim confirmed: `next@16.4.6`, `proxy.ts`, `after()`, `@google/genai@3.6.0` API,
+`prisma@7.10.1`, `iron-session@9.1.0`, `zod@4.6.7`, `vitest@5.1.1`, Tailwind+shadcn — detail `docs/research.md` §9.
+
+**Changed (koreksi dari verifikasi, bukan terima mentah):**
+1. `gemini-2.5-flash` dari riset awal ternyata deprecated → **`gemini-3.8-flash`** (cadangan `3.5-flash-lite`).
+2. Rekomendasi "zod ^3.25 untuk aman" outdated → **`zod@4.6.7`**.
+3. `maxDuration` Hobby bukan ceiling 60s → 300s; tetap 60 (timeout SDK 30s).
+4. `responseSchema` Gemini ditulis **manual** (OpenAPI subset) — `z.toJSONSchema` sebagai bridge tidak
+   terverifikasi, dan nilai enum adalah bagian yang dinilai.
+5. Node dipin ≥22.13 (iron-session engines) untuk Docker/Vercel; Prisma 7 butuh `prisma generate` di build
+   dan adapter berbeda untuk Postgres lokal vs Neon.
+
+**Verified:** semua nilai di `docs/research.md` §9 dengan sourceUrl; spec `SP-0001` + plan `PL-0001`;
+env pin `GEMINI_MODEL` di design §14.

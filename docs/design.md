@@ -141,6 +141,10 @@ model Brief {
 - Publikasi form lewat **Route Handler** (eksplisit, status code, JSON) = poin "API rapi".
 - Semua mutasi internal lewat **Server Action** (dapat CSRF bawaan Next, `revalidatePath`).
 - `revalidatePath()` dipanggil **sebelum** `redirect()`.
+- Rate limit dasar di `POST /api/briefs`: throttle in-memory per-IP (Map + window ~10s/5 req),
+  0 dependency baru — memenuhi poin rubrik "basic rate limit" (research §8).
+  `noir-debt:` per-instance saja di serverless (tidak persist antar lambda); upgrade ke
+  Upstash Redis jika butuh limit global.
 
 ## 7. AI integration (nilai 15)
 
@@ -166,25 +170,25 @@ model Brief {
   budget+timeline → prioritas). Dipakai: (1) saat dev/test agar 0 kuota terbakar,
   (2) saat live kena 429/kuota habis. Output ditandai `provider: "mock"` — jujur &
   terdokumentasi di README (bukan mock-only; integrasi Gemini tetap asli).
-- **Provider Gemini (`lib/ai/gemini.ts`):** `@google/genai` dengan `responseSchema` +
-  `responseMimeType: "application/json"`. Model flash class free-tier (mis.
-  `gemini-2.5-flash`) — **verifikasi ID model & dukungan responseSchema di free key
-  saat build** (lihat §13).
+- **Provider Gemini (`lib/ai/gemini.ts`):** `@google/genai@3.6.0` dengan `responseSchema`
+  (OpenAPI subset, ditulis manual) + `responseMimeType: "application/json"`. Model
+  **`gemini-3.8-flash`** (cadangan `gemini-3.5-flash-lite`; `gemini-2.5-flash` deprecated) —
+  terverifikasi 2026-11-18, lihat research §9.
 
 ## 8. Auth (single admin)
 
 - **iron-session** (cookie signed+encrypted) + **bcryptjs** (hash di env).
 - env: `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` (bcrypt cost 10–12), `SESSION_SECRET` (≥32 char).
 - Login = Server Action (CSRF built-in). Cookie `httpOnly` + `secure`(prod) + `sameSite=lax` + ttl 7 hari.
-- Guard dua lapis: matcher `'/dashboard/:path*'` (proxy/middleware, cek kasar `unsealData`)
-  + `requireAuth()` authoritative di layout dashboard **dan** di tiap Server Action.
+- Guard dua lapis: `proxy.ts` (Next 16 — `middleware.ts` deprecated) matcher `'/dashboard/:path*'`
+  dengan cek kasar `unsealData` + `requireAuth()` authoritative di layout dashboard **dan** di tiap Server Action.
 - Bukan NextAuth/better-auth (asumsi user table; overkill untuk satu admin).
 
 ## 9. Async processing (bonus)
 
 - `after()` dari `next/server` (stabil ≥ v15.1) di dalam `POST /api/briefs` dan di
   Server Action re-process: insert `PENDING` → return segera → LLM jalan post-response.
-- `maxDuration = 60` di route; timeout SDK 30s < maxDuration → hang = `FAILED` bersih.
+- `maxDuration = 60` di route (Hobby Fluid Compute max 300s; 60 cukup) → timeout SDK 30s < maxDuration → hang = `FAILED` bersih.
 - Recovery row macet: `aiStatus` + tombol "Proses ulang" selalu tampil; `aiAttempts`/`updatedAt`
   untuk menandai baris `PROCESSING` yang stale.
 - Polling dashboard/detail: SWR `refreshInterval: 2000` (atau `router.refresh()`).
@@ -212,20 +216,25 @@ vitest, 3–5 test fokus (bukan coverage CRUD):
 3. `processBrief`: LLM mock mengembalikan JSON invalid → `aiStatus=FAILED`; valid → `SUCCESS`.
 4. Filter: `?priority=High&category=Website` kombinasi + masing-masing + kosong (assert SQL/query).
 
-## 13. VERIFY AT BUILD TIME (jangan percaya mentah)
+## 13. Versi terverifikasi (T0, 2026-11-18 — sumber primer)
 
-Riset web memberi versi/model yang harus diverifikasi saat scaffold (bisa berubah/halusinasi):
-- Versi Next.js terkini (riset: 16.4.x; middleware → `proxy.ts`). Pakai `create-next-app@latest`.
-- Model Gemini free-tier & apakah `responseSchema` aktif di free key (riset: flash class).
-- API `@google/genai` untuk `responseSchema`/`responseMimeType`.
-- `iron-session` versi (riset: 9.x), `bcryptjs`, `zod` versi (pakai zod ^3.25 untuk aman vs schema-conversion).
-- Prisma + Neon: `@prisma/adapter-neon` (pooled URL) — atau driver adapter standar.
+Semua item riset dicek ulang (workflow 9 agent; detail + URL di `docs/research.md` §9). Pin:
+`next@16.4.6` · `@google/genai@3.6.0` · model `gemini-3.8-flash` (cadangan `gemini-3.5-flash-lite`) ·
+`prisma@7.10.1` · `iron-session@9.1.0` · `zod@4.6.7` · `vitest@5.1.1`. Node ≥22.13 (iron-session engines)
+— lokal v24.12.0 aman; pin untuk Docker/Vercel.
+
+Catatan build:
+- `middleware.ts` → `proxy.ts` (default Node runtime).
+- Gemini `responseSchema` ditulis manual (OpenAPI subset, `format: 'enum'`), bukan `z.toJSONSchema`.
+- Prisma 7: `prisma generate` wajib di build Vercel; adapter **Neon** untuk prod, adapter **pg** untuk
+  Postgres Docker lokal (pilih di `lib/db.ts`).
+- Scaffold `--no-cache-components` (dashboard auth-gated).
 
 ## 14. Deploy
 
 1. Neon: project region **Singapore**; ambil `DATABASE_URL` (pooled) + `DATABASE_URL_DIRECT`.
-2. Migrasi: `prisma migrate deploy` **sekali** lokal terhadap `DATABASE_URL_DIRECT`
-   (bukan di build step; jangan `prisma db push` di prod).
+2. Migrasi: `prisma migrate deploy` terhadap `DATABASE_URL_DIRECT` (idempoten — jalankan tiap deploy;
+   bukan di build step; jangan `prisma db push` di prod).
 3. Vercel: import repo `agaaaptr/briefflow`; env lengkap; region `sin1` (co-locate dgn DB).
 4. Smoke test URL live: submit form → summary muncul → login admin → filter → re-process.
 5. Cold start ~1–5s saat klik pertama (Vercel Hobby + Neon scale-to-zero) — normal, jangan panik.
@@ -235,6 +244,7 @@ env (`.env.example` — hanya placeholder, `.env` gitignored):
 DATABASE_URL=            # pooled (app)
 DATABASE_URL_DIRECT=     # direct (migrasi)
 GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.8-flash
 AI_PROVIDER=gemini       # gemini | mock
 ADMIN_EMAIL=
 ADMIN_PASSWORD_HASH=     # bcrypt

@@ -75,3 +75,32 @@ bisa berubah atau salah (riset AI bisa halusinasi).
 - **README/AI-log/komunikasi (15):** run command tepat + versi runtime; env table; asumsi; trade-off; known limitations; "with more time"; time spent; AI log; reply email dengan repo+live+creds+video.
 - **Video:** demo happy path dulu → 1 diagram arsitektur → sebut 3 cuts → tutup link. Tanpa baca slide, tanpa claim "saya buat semua", ≤5 menit.
 - Sumber: offerpilotai.ink, sevydevy.com, easyenv.io, getintegritylens.com, stackoverflow (atomic commits).
+
+## 9. Verifikasi ulang — workflow 9 agent (2026-11-18, sumber primer)
+
+21/24 klaim confirmed. Tiga koreksi:
+
+| Klaim awal | Status | Nilai benar |
+| --- | --- | --- |
+| Hobby `maxDuration` ceiling 60s | outdated | Fluid Compute: Hobby default & max **300s**; 60 tetap valid |
+| Model free tier `gemini-2.5-flash` | outdated | **`gemini-3.8-flash`** (GA, free) / `gemini-3.5-flash-lite`; 2.5 deprecated & dialihkan 2026-12-01 |
+| Zod `^3.25` untuk aman | outdated | **`zod@4.6.7`** stable current |
+| Free-tier RPD/RPM Gemini | unclear | Tidak dipublikasi; baca console per-project AI Studio. RPD reset midnight Pacific |
+
+Terkonfirmasi: `next@16.4.6` · `middleware.ts` → **`proxy.ts`** (default Node runtime) · Turbopack default
+dev+build · `after()` stabil di Route Handler & Server Action · `@google/genai@3.6.0`
+(`generateContent({model, contents, config:{responseMimeType, responseSchema}})`, `GOOGLE_API_KEY`
+menang atas `GEMINI_API_KEY`) · responseSchema JSON mode jalan di free key · `prisma@7.10.1`
+(adapter Neon prod, migrasi direct URL) · `iron-session@9.1.0` (Node ≥22.13) · `vitest@5.1.1` (Node ≥22.12)
+· Tailwind + shadcn CLI current.
+
+**Gap audit yang ditutup saat build:**
+- **Gemini schema bridge:** tulis `responseSchema` manual sebagai OpenAPI subset (`Type.OBJECT` + `format:
+  'enum'`), bukan `z.toJSONSchema()` (unverified); 1 test memastikan nilai enum cocok dengan `aiResultSchema`.
+- **Node pin ≥22.13** (iron-session engines) untuk Docker image + Vercel; lokal v24.12.0 aman.
+- **Prisma 7:** `prisma generate` wajib di build Vercel; lokasi client mengikuti CLI saat scaffold.
+- **Docker lokal:** postgres container butuh adapter **pg**, bukan adapter Neon (Neon-only) — pilih adapter
+  per environment di `lib/db.ts`.
+- **Cache Components** default ON di create-next-app 16 → scaffold dengan `--no-cache-components`
+  (dashboard auth-gated); kalau tetap ON, `cookies()` memaksa dynamic.
+- **Demo quota:** mock fallback 429 dipertahankan; angka RPD aktual dibaca dari console, jangan diasumsikan.

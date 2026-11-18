@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PipelineStatus {
+  NEW
+  CONTACTED
+  PROPOSAL
+  WON
+  LOST
+}
+
+enum AiStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum BudgetRange {
+  UNDER_10M
+  M10_25M
+  M25_50M
+  M50_100M
+  OVER_100M
+}
+
+enum ServiceCategory {
+  BRANDING
+  WEBSITE
+  MOBILE_APP
+  AI_AUTOMATION
+  SOCIAL_MEDIA
+  LAINNYA
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model Brief {
+  id             String          @id @default(cuid())
+  name           String
+  email          String
+  company        String
+  needs          String          @db.Text
+  budget         BudgetRange
+  targetTimeline DateTime        @db.Date
+  pipelineStatus PipelineStatus  @default(NEW)
+  aiStatus       AiStatus        @default(PENDING)
+  aiCategory     ServiceCategory?
+  aiPriority     Priority?
+  aiResult       Json?
+  aiError        String?         @db.Text
+  aiAttempts     Int             @default(0)
+  aiProcessedAt  DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([createdAt])
+  @@index([aiCategory, aiPriority])
+  @@index([pipelineStatus])
+}

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { draftEmail, type DraftState } from "@/app/actions";
+import { buttonClass, cardClass } from "@/components/ui/styles";
 
 export function DraftEmail({
   briefId,
@@ -10,10 +11,10 @@ export function DraftEmail({
   briefId: string;
   disabled?: boolean;
 }) {
-  const [state, action, pending] = useActionState<DraftState | undefined, FormData>(
-    draftEmail,
-    undefined,
-  );
+  const [state, action, pending] = useActionState<
+    DraftState | undefined,
+    FormData
+  >(draftEmail, undefined);
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -24,12 +25,12 @@ export function DraftEmail({
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6">
-      <h2 className="mb-3 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+    <section className={`${cardClass} p-6`}>
+      <h2 className="mb-3 font-display text-sm font-bold text-ink">
         Draft email balasan (AI)
       </h2>
       {disabled ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted">
           Tersedia setelah proses AI sukses.
         </p>
       ) : (
@@ -38,14 +39,17 @@ export function DraftEmail({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:opacity-60"
+            className={buttonClass("secondary", "sm")}
           >
             {pending ? "Menulis…" : "Buat draft email"}
           </button>
         </form>
       )}
       {state?.error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p
+          role="alert"
+          className="mt-3 rounded border-2 border-ink bg-[#f2b8b0] px-3 py-2 text-sm text-ink"
+        >
           {state.error}
         </p>
       )}
@@ -55,15 +59,18 @@ export function DraftEmail({
             readOnly
             value={state.draft}
             rows={12}
-            className="w-full rounded-lg border border-slate-300 p-3 font-mono text-xs text-slate-800"
+            className="w-full rounded border-2 border-ink bg-surface p-3 text-sm text-ink"
           />
           <button
             type="button"
             onClick={copy}
-            className="mt-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+            className={buttonClass("secondary", "sm", "mt-2")}
           >
             {copied ? "Tersalin ✓" : "Copy"}
           </button>
+          <span aria-live="polite" className="sr-only">
+            {copied ? "Tersalin ke clipboard" : ""}
+          </span>
         </div>
       )}
     </section>

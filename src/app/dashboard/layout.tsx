@@ -1,5 +1,5 @@
-import { logout } from "@/app/actions";
 import { requireAuth } from "@/lib/auth";
+import { LogoutButton } from "@/components/logout-button";
 
 export default async function DashboardLayout({
   children,
@@ -9,25 +9,18 @@ export default async function DashboardLayout({
   const session = await requireAuth();
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-paper">
+      <header className="border-b-2 border-ink bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-baseline gap-2">
-            <span className="text-sm font-bold tracking-widest text-indigo-600 uppercase">
+            <span className="font-display text-sm font-bold text-ink">
               Briefflow
             </span>
-            <span className="text-xs text-slate-500">Dashboard internal</span>
+            <span className="text-xs text-muted">Dashboard internal</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-slate-600">{session.email}</span>
-            <form action={logout}>
-              <button
-                type="submit"
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
-              >
-                Keluar
-              </button>
-            </form>
+            <span className="text-muted">{session.email}</span>
+            <LogoutButton />
           </div>
         </div>
       </header>

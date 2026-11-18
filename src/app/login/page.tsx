@@ -2,42 +2,44 @@
 
 import { useActionState } from "react";
 import { login, type LoginState } from "@/app/actions";
+import { buttonClass, inputClass, labelClass } from "@/components/ui/styles";
 
 export default function LoginPage() {
-  const [state, formAction, pending] = useActionState<LoginState | undefined, FormData>(
-    login,
-    undefined,
-  );
+  const [state, formAction, pending] = useActionState<
+    LoginState | undefined,
+    FormData
+  >(login, undefined);
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
         <header className="mb-8 text-center">
-          <p className="text-sm font-semibold tracking-widest text-indigo-600 uppercase">
+          <p className="font-display text-sm font-semibold text-ink">
             Briefflow
           </p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
             Login Admin
           </h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-muted">
             Dashboard internal tim sales.
           </p>
         </header>
 
         <form
           action={formAction}
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
+          className="space-y-4 rounded border-2 border-ink bg-surface p-8"
+          noValidate
         >
           {state?.error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p
+              role="alert"
+              className="rounded border-2 border-ink bg-[#f2b8b0] px-3 py-2 text-sm text-ink"
+            >
               {state.error}
             </p>
           )}
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="email" className={labelClass}>
               Email
             </label>
             <input
@@ -46,14 +48,11 @@ export default function LoginPage() {
               type="email"
               autoComplete="username"
               required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              className={inputClass}
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="password" className={labelClass}>
               Password
             </label>
             <input
@@ -62,13 +61,13 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+              className={inputClass}
             />
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+            className={buttonClass("primary", "md", "w-full")}
           >
             {pending ? "Memeriksa…" : "Masuk"}
           </button>

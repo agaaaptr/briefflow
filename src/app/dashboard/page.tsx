@@ -5,6 +5,8 @@ import {
   PriorityBadge,
 } from "@/components/badges";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { Select } from "@/components/ui/select";
+import { buttonClass } from "@/components/ui/styles";
 import { listBriefs, parseFilter } from "@/lib/briefs";
 import { CATEGORY_LABELS, PRIORITY_LABELS } from "@/lib/labels";
 
@@ -33,69 +35,51 @@ export default async function DashboardPage({
       />
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <h1 className="font-display text-xl font-bold tracking-tight text-ink">
             Brief masuk
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted" role="status">
             {briefs.length} brief · terbaru dulu
           </p>
         </div>
 
         {/* Filter server-side: nilai enum lewat URL, bisa dikombinasi */}
         <form className="flex flex-wrap items-end gap-2" method="get">
-          <div>
-            <label
-              htmlFor="priority"
-              className="mb-1 block text-xs font-medium text-slate-500"
-            >
+          <div className="w-36">
+            <span className="mb-1 block text-xs font-semibold text-muted">
               Prioritas
-            </label>
-            <select
-              id="priority"
+            </span>
+            <Select
               name="priority"
               defaultValue={filter.priority ?? ""}
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
-            >
-              <option value="">Semua</option>
-              {(["HIGH", "MEDIUM", "LOW"] as const).map((p) => (
-                <option key={p} value={p}>
-                  {PRIORITY_LABELS[p]}
-                </option>
-              ))}
-            </select>
+              placeholder="Semua"
+              aria-label="Filter prioritas"
+              options={(["HIGH", "MEDIUM", "LOW"] as const).map((p) => ({
+                value: p,
+                label: PRIORITY_LABELS[p],
+              }))}
+            />
           </div>
-          <div>
-            <label
-              htmlFor="category"
-              className="mb-1 block text-xs font-medium text-slate-500"
-            >
+          <div className="w-44">
+            <span className="mb-1 block text-xs font-semibold text-muted">
               Kategori
-            </label>
-            <select
-              id="category"
+            </span>
+            <Select
               name="category"
               defaultValue={filter.category ?? ""}
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
-            >
-              <option value="">Semua</option>
-              {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              placeholder="Semua"
+              aria-label="Filter kategori"
+              options={Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+                value,
+                label,
+              }))}
+            />
           </div>
-          <button
-            type="submit"
-            className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-          >
+          <button type="submit" className={buttonClass("primary", "sm")}>
             Terapkan
           </button>
           {activeFilter && (
-            <Link
-              href="/dashboard"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
-            >
+            <Link href="/dashboard" className={buttonClass("secondary", "sm")}>
               Reset
             </Link>
           )}
@@ -103,36 +87,49 @@ export default async function DashboardPage({
       </div>
 
       {briefs.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center text-sm text-slate-500">
+        <div className="rounded border-2 border-dashed border-ink/30 bg-surface p-12 text-center text-sm text-muted">
           {activeFilter
             ? "Tidak ada brief yang cocok dengan filter."
             : "Belum ada brief masuk."}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded border-2 border-ink bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs tracking-wide text-slate-500 uppercase">
+            <caption className="sr-only">Daftar brief masuk</caption>
+            <thead className="border-b-2 border-ink bg-wash text-xs font-semibold text-ink">
               <tr>
-                <th className="px-4 py-3 font-medium">Perusahaan</th>
-                <th className="px-4 py-3 font-medium">Kategori</th>
-                <th className="px-4 py-3 font-medium">Prioritas</th>
-                <th className="px-4 py-3 font-medium">Status AI</th>
-                <th className="px-4 py-3 font-medium">Pipeline</th>
-                <th className="px-4 py-3 font-medium">Tanggal masuk</th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Perusahaan
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Kategori
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Prioritas
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Status AI
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Pipeline
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Tanggal masuk
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-line">
               {briefs.map((b) => (
-                <tr key={b.id} className="hover:bg-slate-50">
+                <tr key={b.id} className="hover:bg-wash">
                   <td className="px-4 py-3">
                     <Link
                       href={`/dashboard/briefs/${b.id}`}
-                      className="font-medium text-slate-900 hover:text-indigo-600"
+                      className="font-semibold text-ink hover:underline"
                     >
                       {b.company}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-muted">
                     {b.aiCategory ? CATEGORY_LABELS[b.aiCategory] : "—"}
                   </td>
                   <td className="px-4 py-3">
@@ -144,7 +141,7 @@ export default async function DashboardPage({
                   <td className="px-4 py-3">
                     <PipelineBadge value={b.pipelineStatus} />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-slate-600">
+                  <td className="px-4 py-3 whitespace-nowrap text-muted">
                     {dateFmt.format(b.createdAt)}
                   </td>
                 </tr>

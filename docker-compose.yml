@@ -16,5 +16,35 @@ services:
       timeout: 3s
       retries: 12
 
+  # Migrasi sekali jalan (stage builder punya prisma CLI lengkap); runner tetap ramping
+  migrate:
+    build:
+      context: .
+      target: builder
+    command: sh -c "npx prisma migrate deploy"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://briefflow:briefflow@db:5432/briefflow?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    # .env (dari .env.example) dipakai apa adanya; DATABASE_URL dioverride ke host db
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://briefflow:briefflow@db:5432/briefflow?schema=public
+      DATABASE_URL_DIRECT: postgresql://briefflow:briefflow@db:5432/briefflow?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
 volumes:
   db_data:

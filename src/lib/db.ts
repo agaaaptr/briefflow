@@ -15,6 +15,12 @@ function createPrisma(): PrismaClient {
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-export const prisma = globalForPrisma.prisma ?? createPrisma();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Lazy singleton: klien hanya dibuat saat query pertama, bukan saat modul
+// diimpor — `next build` mengimpor modul tanpa DATABASE_URL.
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    globalForPrisma.prisma ??= createPrisma();
+    const value = Reflect.get(globalForPrisma.prisma as object, prop);
+    return typeof value === "function" ? value.bind(globalForPrisma.prisma) : value;
+  },
+});

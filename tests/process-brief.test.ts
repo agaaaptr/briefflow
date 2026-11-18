@@ -13,13 +13,14 @@ vi.mock("@/lib/db", () => ({
 
 import { processBrief } from "@/lib/briefs";
 import { prisma } from "@/lib/db";
+import type { Brief } from "@/generated/prisma/client";
 
 const fixture = {
   id: "b1",
   needs: "Pembuatan website company profile dan landing page",
   budget: "M25_50M" as const,
   targetTimeline: new Date("2099-06-01T00:00:00Z"),
-};
+} as unknown as Brief;
 
 const originalProvider = process.env.AI_PROVIDER;
 
@@ -46,7 +47,7 @@ describe("processBrief", () => {
     expect(last.data.aiStatus).toBe("SUCCESS");
     expect(last.data.aiCategory).toBe("WEBSITE");
     expect(typeof last.data.aiPriority).toBe("string");
-    expect(last.data.aiResult.provider).toBe("mock");
+    expect((last.data.aiResult as { provider: string }).provider).toBe("mock");
     expect(last.data.aiProcessedAt).toBeInstanceOf(Date);
   });
 
@@ -98,7 +99,7 @@ describe("processBrief", () => {
     const calls = vi.mocked(freshPrisma.brief.update).mock.calls;
     const last = calls[calls.length - 1][0];
     expect(last.data.aiStatus).toBe("SUCCESS");
-    expect(last.data.aiResult.provider).toBe("mock");
+    expect((last.data.aiResult as { provider: string }).provider).toBe("mock");
     expect(String(last.data.aiError)).toContain("Fallback");
     vi.doUnmock("@/lib/ai/gemini");
   });

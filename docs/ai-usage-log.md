@@ -80,3 +80,40 @@ _Contoh yang WAJIB dicatat saat build (minimal 2 momen menolak/mengoreksi output
 
 **Verified:** semua nilai di `docs/research.md` §9 dengan sourceUrl; spec `SP-0001` + plan `PL-0001`;
 env pin `GEMINI_MODEL` di design §14.
+
+---
+
+## 2026-11-18 — Build session (T1–T11: scaffold → Docker)
+
+**Tool:** Claude Code (Transformer) — eksekusi inline sequential per `PL-0001`, tiap task
+implement → verify (typecheck/build/test/smoke) → commit.
+
+**Asked for:** Implementasi 14 task (scaffold Next.js → Docker) dengan commit incremental runnable.
+
+**Accepted:** scaffold Next 16.4.6 + Tailwind 4 (Turbopack); pola Prisma 7 driver-adapter
+(`pg` lokal / `neon` prod) dari skill resmi; `after()` untuk async; API Zod 4 (`z.email`,
+`z.iso.date`, `flattenError`); dashboard plain-Tailwind; Dockerfile multi-stage + service
+`migrate` terpisah; skrip smoke (`smoke-api`, `fetch-dashboard`, `post-brief`) sebagai bukti verifikasi.
+
+**Changed (momen mengoreksi/menolak output AI):**
+1. Suggestion `LayoutProps<"/dashboard">` untuk layout dashboard **ditolak** — melanggar
+   constraint type versi Next ini (TS2344) → diganti prop `React.ReactNode` eksplisit.
+2. Mock classifier match "WhatsApp" sebagai *Mobile App* (substring `app`) → regex word
+   boundary `\bapp\b`; bug tertangkap lewat tes data, bukan kebetulan direview.
+3. Menyalin prisma CLI manual ke stage runner Docker gagal (`Cannot find module 'effect'`
+   — dependensi CLI berantai) → migrasi dipindah ke service compose `migrate` (stage builder
+   dengan node_modules penuh); runner tetap ramping.
+4. `prisma migrate dev` di v7 **tidak** auto-generate client (beda dari v6) → script build
+   jadi `prisma generate && next build`; `typecheck` juga.
+5. `PrismaClient` di-instantiate saat import merusak `next build` di Docker (tanpa
+   `DATABASE_URL`) → singleton lazy via `Proxy`.
+6. Lockfile out-of-sync membuat `npm ci` di Docker gagal (`@emnapi/runtime` hilang) →
+   lockfile diregenerasi penuh.
+7. Hook context-mode memblokir `curl`/fetch inline di shell → semua pengecekan HTTP
+   dipindah ke skrip node yang committed (jadi artefak verifikasi yang bisa diulang reviewer).
+
+**Verified:** typecheck + build + 23 test vitest hijau di tiap task; `smoke-api` 6/6
+(validasi server + rate limit); `fetch-dashboard` 7/7 (redirect auth, filter kombinasi,
+empty state, cookie dipalsukan ditolak, halaman detail); Docker stack penuh diverifikasi
+di `:3000` dengan skrip yang sama; row DB dicek langsung lewat psql (jalur SUCCESS/FAILED
+terbukti). Commit `71e8396…e02dfcd` (11 commit, masing-masing runnable).

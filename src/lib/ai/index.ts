@@ -1,9 +1,9 @@
 import type { AiResult } from "@/lib/schema";
-import { summarizeWithGemini } from "./gemini";
-import { mockSummary } from "./mock";
-import type { SummaryInput } from "./prompt";
+import { draftReplyWithGemini, summarizeWithGemini } from "./gemini";
+import { mockReplyDraft, mockSummary } from "./mock";
+import type { ReplyInput, SummaryInput } from "./prompt";
 
-export type { AiResult, SummaryInput };
+export type { AiResult, SummaryInput, ReplyInput };
 
 export type SummaryOutcome = {
   data: AiResult;
@@ -56,4 +56,24 @@ export async function generateBriefSummary(
     }
   }
   throw lastError;
+}
+
+/**
+ * Draft email balasan (bonus). Provider sama dengan ringkasan;
+ * kuota habis → fallback mock, error lain → throw.
+ */
+export async function generateReplyDraft(
+  input: ReplyInput,
+): Promise<{ draft: string; provider: "gemini" | "mock" }> {
+  if (process.env.AI_PROVIDER === "mock") {
+    return { draft: mockReplyDraft(input), provider: "mock" };
+  }
+  try {
+    return { draft: await draftReplyWithGemini(input), provider: "gemini" };
+  } catch (err) {
+    if (isQuotaError(err)) {
+      return { draft: mockReplyDraft(input), provider: "mock" };
+    }
+    throw err;
+  }
 }

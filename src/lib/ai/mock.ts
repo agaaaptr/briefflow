@@ -52,3 +52,30 @@ export function mockSummary(input: SummaryInput): AiResult {
       input.needs.length < 60 ? ["detail ruang lingkup pekerjaan"] : [],
   };
 }
+
+// Draft balasan deterministik (mock path untuk fitur bonus draft email).
+export function mockReplyDraft(input: {
+  name: string;
+  company: string;
+  summary: string;
+  missingInfo: string[];
+}): string {
+  const questions = input.missingInfo.length
+    ? input.missingInfo.map((m) => `- ${m}`).join("\n")
+    : "";
+  return `Subjek: Tindak lanjut brief proyek ${input.company}
+
+Halo ${input.name},
+
+Terima kasih sudah mengirim brief melalui Briefflow. Kami sudah meninjau kebutuhan ${input.company} dan menangkapnya sebagai berikut: ${input.summary}
+
+${
+  questions
+    ? `Agar proposal kami tepat sasaran, mohon bantuan untuk beberapa detail:\n${questions}\n`
+    : ""
+}
+Setelah itu kami siap mengirim proposal berikut estimasi timeline. Apakah minggu ini ada waktu untuk diskusi singkat?
+
+Salam,
+Tim Sales`;
+}

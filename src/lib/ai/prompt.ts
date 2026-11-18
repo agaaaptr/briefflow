@@ -29,3 +29,31 @@ export function buildUserPrompt(input: SummaryInput): string {
 
 Proses brief ini dan kembalikan JSON sesuai aturan di atas.`;
 }
+
+// ---- Draft email balasan (bonus) ----
+
+export const DRAFT_SYSTEM_PROMPT = `Anda adalah anggota tim sales sebuah agensi kreatif. Tulis draft email balasan ke calon klien berdasarkan ringkasan AI atas brief mereka.
+
+Aturan:
+- Bahasa Indonesia, nada profesional dan ramah.
+- Format: baris "Subjek: ..." lalu blank line lalu isi email (sapaan, tanggapan singkat atas kebutuhan, pertanyaan untuk melengkapi informasi yang kurang, ajakan lanjut, tanda tangan "Tim Sales").
+- Maksimal ~200 kata. Output HANYA teks email — tanpa penjelasan lain.`;
+
+export type ReplyInput = {
+  name: string;
+  company: string;
+  summary: string;
+  missingInfo: string[];
+};
+
+export function buildDraftPrompt(input: ReplyInput): string {
+  return `Data klien:
+- Nama: ${input.name}
+- Perusahaan: ${input.company}
+- Ringkasan AI atas brief: ${input.summary}
+- Informasi yang masih kurang: ${
+    input.missingInfo.length ? input.missingInfo.join("; ") : "(sudah lengkap)"
+  }
+
+Tulis draft email balasannya.`;
+}

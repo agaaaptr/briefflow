@@ -5,7 +5,14 @@ import {
   aiResultSchema,
   type AiResult,
 } from "@/lib/schema";
-import { SYSTEM_PROMPT, buildUserPrompt, type SummaryInput } from "./prompt";
+import {
+  DRAFT_SYSTEM_PROMPT,
+  SYSTEM_PROMPT,
+  buildDraftPrompt,
+  buildUserPrompt,
+  type ReplyInput,
+  type SummaryInput,
+} from "./prompt";
 
 // responseSchema ditulis manual sebagai OpenAPI subset (@google/genai) dan
 // nilai enum-nya diambil dari konstanta yang sama dengan aiResultSchema —
@@ -83,4 +90,24 @@ export async function summarizeWithGemini(
     );
   }
   return parsed.data;
+}
+
+/** Draft email balasan — teks bebas (tanpa schema), tetap dengan timeout 30s. */
+export async function draftReplyWithGemini(input: ReplyInput): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY tidak diset walau AI_PROVIDER=gemini");
+  }
+  const ai = new GoogleGenAI({ apiKey });
+  const model = process.env.GEMINI_MODEL ?? "gemini-3.8-flash";
+  const response = await ai.models.generateContent({
+    model,
+    contents: `${DRAFT_SYSTEM_PROMPT}\n\n${buildDraftPrompt(input)}`,
+    config: {
+      abortSignal: AbortSignal.timeout(30_000),
+    },
+  });
+  const text = response.text ?? "";
+  if (!text.trim()) throw new InvalidAiOutputError("Draft kosong dari model");
+  return text.trim();
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { reprocessBrief, setPipeline } from "@/app/actions";
 import { AiStatusBadge, PipelineBadge } from "@/components/badges";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { DraftEmail } from "@/components/draft-email";
 import { getBrief } from "@/lib/briefs";
 import { PIPELINE_LABELS } from "@/lib/labels";
 import { BUDGET_LABELS, aiResultSchema } from "@/lib/schema";
@@ -189,6 +190,8 @@ export default async function BriefDetailPage({
           </button>
         </form>
       </section>
+
+      <DraftEmail briefId={brief.id} disabled={brief.aiStatus !== "SUCCESS"} />
     </div>
   );
 }

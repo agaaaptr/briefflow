@@ -5,10 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { requireAuth, getSession } from "@/lib/auth";
-import { processBrief, setPipelineStatus } from "@/lib/briefs";
+import { generateReplyDraft } from "@/lib/ai";
+import { getBrief, processBrief, setPipelineStatus } from "@/lib/briefs";
+import { aiResultSchema } from "@/lib/schema";
 import type { PipelineStatus } from "@/generated/prisma/enums";
 
 export type LoginState = { error?: string };
+export type DraftState = { draft?: string; error?: string };
 
 export async function login(
   _prev: LoginState | undefined,
@@ -74,4 +77,34 @@ export async function reprocessBrief(formData: FormData) {
   });
   revalidatePath(`/dashboard/briefs/${id}`);
   revalidatePath("/dashboard");
+}
+
+export async function draftEmail(
+  _prev: DraftState | undefined,
+  formData: FormData,
+): Promise<DraftState> {
+  await requireAuth();
+  const id = String(formData.get("id") ?? "");
+  const brief = await getBrief(id);
+  if (!brief) return { error: "Brief tidak ditemukan." };
+  if (brief.aiStatus !== "SUCCESS") {
+    return { error: "Proses AI harus sukses sebelum membuat draft email." };
+  }
+  const ai = aiResultSchema.safeParse(brief.aiResult);
+  if (!ai.success) {
+    return { error: "Hasil AI tidak valid — jalankan proses ulang dulu." };
+  }
+  try {
+    const { draft } = await generateReplyDraft({
+      name: brief.name,
+      company: brief.company,
+      summary: ai.data.summary,
+      missingInfo: ai.data.missing_info,
+    });
+    return { draft };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Gagal membuat draft.",
+    };
+  }
 }

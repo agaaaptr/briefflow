@@ -172,8 +172,9 @@ model Brief {
   terdokumentasi di README (bukan mock-only; integrasi Gemini tetap asli).
 - **Provider Gemini (`lib/ai/gemini.ts`):** `@google/genai@3.6.0` dengan `responseSchema`
   (OpenAPI subset, ditulis manual) + `responseMimeType: "application/json"`. Model
-  **`gemini-3.8-flash`** (cadangan `gemini-3.5-flash-lite`; `gemini-2.5-flash` deprecated) —
-  terverifikasi 2026-11-18, lihat research §9.
+  **`gemini-3.5-flash-lite`** (cadangan `gemini-3.8-flash`; `gemini-2.5-flash` deprecated).
+  Catatan runtime: `gemini-3.8-flash` sering 503 "high demand" di free key → default pakai
+  `gemini-3.5-flash-lite` (lebih stabil). Terverifikasi live 2026-11-18.
 
 ## 8. Auth (single admin)
 
@@ -219,9 +220,10 @@ vitest, 3–5 test fokus (bukan coverage CRUD):
 ## 13. Versi terverifikasi (T0, 2026-11-18 — sumber primer)
 
 Semua item riset dicek ulang (workflow 9 agent; detail + URL di `docs/research.md` §9). Pin:
-`next@16.4.6` · `@google/genai@3.6.0` · model `gemini-3.8-flash` (cadangan `gemini-3.5-flash-lite`) ·
+`next@16.4.6` · `@google/genai@3.6.0` · model `gemini-3.5-flash-lite` (cadangan `gemini-3.8-flash`) ·
 `prisma@7.10.1` · `iron-session@9.1.0` · `zod@4.6.7` · `vitest@5.1.1`. Node ≥22.13 (iron-session engines)
-— lokal v24.12.0 aman; pin untuk Docker/Vercel.
+— lokal v24.12.0 aman; pin untuk Docker/Vercel. Model default **`gemini-3.5-flash-lite`**
+(3.8-flash sering 503 "high demand" — lihat research §9 + AI-log).
 
 Catatan build:
 - `middleware.ts` → `proxy.ts` (default Node runtime).

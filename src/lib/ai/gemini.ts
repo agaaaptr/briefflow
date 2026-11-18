@@ -58,7 +58,7 @@ export async function summarizeWithGemini(
     throw new Error("GEMINI_API_KEY tidak diset walau AI_PROVIDER=gemini");
   }
   const ai = new GoogleGenAI({ apiKey });
-  const model = process.env.GEMINI_MODEL ?? "gemini-3.8-flash";
+  const model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
 
   const prompt =
     `${SYSTEM_PROMPT}\n\n${buildUserPrompt(input)}` +
@@ -103,7 +103,7 @@ export async function draftReplyWithGemini(input: ReplyInput): Promise<string> {
     throw new Error("GEMINI_API_KEY tidak diset walau AI_PROVIDER=gemini");
   }
   const ai = new GoogleGenAI({ apiKey });
-  const model = process.env.GEMINI_MODEL ?? "gemini-3.8-flash";
+  const model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
   const response = await ai.models.generateContent({
     model,
     contents: `${DRAFT_SYSTEM_PROMPT}\n\n${buildDraftPrompt(input)}`,

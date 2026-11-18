@@ -30,7 +30,7 @@ export async function generateBriefSummary(
   if (process.env.AI_PROVIDER === "mock") {
     return { data: mockSummary(input), provider: "mock", model: "mock" };
   }
-  const model = process.env.GEMINI_MODEL ?? "gemini-3.8-flash";
+  const model = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {

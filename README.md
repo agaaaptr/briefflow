@@ -16,7 +16,7 @@ admin-only dashboard manages them through a sales pipeline
 | Database | PostgreSQL (Neon in prod, Docker Postgres locally) | 17 |
 | ORM | Prisma (driver adapters: `pg` local / `neon` prod) | 7.10.1 |
 | Validation | Zod (one shared schema for form + AI output) | 4.6.7 |
-| AI | Google Gemini via `@google/genai` + deterministic mock fallback | genai 3.6.0 · `gemini-3.8-flash` |
+| AI | Google Gemini via `@google/genai` + deterministic mock fallback | genai 3.6.0 · `gemini-3.5-flash-lite` |
 | Auth | iron-session (signed cookie) + bcryptjs (hash in env) | 9.1.0 / 3.0.3 |
 | Styling | Tailwind CSS (plain components — no component library) | 4.3.3 |
 | Tests | Vitest (23 tests) + HTTP smoke scripts | 5.1.1 |
@@ -105,9 +105,10 @@ AI result for filtering/sorting), `aiResult` (jsonb: full validated payload +
 
 ## AI integration
 
-- **Provider:** Google Gemini (`gemini-3.8-flash`, free tier) via `@google/genai`
-  with `responseMimeType: "application/json"` + a hand-written OpenAPI-subset
-  `responseSchema`. **Mock:** deterministic keyword/budget/timeline-based
+- **Provider:** Google Gemini (`gemini-3.5-flash-lite`, free tier — chosen over
+  `gemini-3.8-flash`, which answers HTTP 503 "high demand" on the free tier)
+  via `@google/genai` with `responseMimeType: "application/json"` + a hand-written
+  OpenAPI-subset `responseSchema`. **Mock:** deterministic keyword/budget/timeline-based
   provider used (1) in dev/tests to burn zero quota and (2) live when Gemini
   answers 429/quota-exhausted — always recorded as `provider: "mock"` in
   `aiResult`, so the data never lies about its origin.

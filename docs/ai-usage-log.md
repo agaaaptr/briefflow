@@ -117,3 +117,25 @@ implement → verify (typecheck/build/test/smoke) → commit.
 empty state, cookie dipalsukan ditolak, halaman detail); Docker stack penuh diverifikasi
 di `:3000` dengan skrip yang sama; row DB dicek langsung lewat psql (jalur SUCCESS/FAILED
 terbukti). Commit `71e8396…e02dfcd` (11 commit, masing-masing runnable).
+
+---
+
+## 2026-11-18 — Deploy: switch model Gemini setelah 503 live
+
+**Tool:** Claude Code (Transformer) — raw REST probe (`scripts/test-gemini-http.mjs`) + `e2e-ai.mjs`.
+
+**Asked for:** Wiring Neon + Gemini live sebelum deploy Vercel; buktikan AI end-to-end di DB Neon.
+
+**Accepted:** Neon env (`DATABASE_URL` pooled, `DATABASE_URL_UNPOOLED` → `DATABASE_URL_DIRECT`),
+`prisma migrate deploy` ke branch `production`, `AI_PROVIDER=gemini`.
+
+**Changed:** verifikasi awal merekomendasikan `gemini-3.8-flash` (newest GA). Saat dites live
+justru **HTTP 503 "high demand"** berulang → SDK retry membuat request tampak hang, dan
+`AbortSignal.timeout(30s)` akhirnya menandai brief `FAILED`. Probe raw ke kedua model
+membuktikan `gemini-3.5-flash-lite` balas 200 dalam ~7s. **Default model dipindah ke
+`gemini-3.5-flash-lite`** (env + default kode + docs). Ini contoh menolak output riset lama
+demi fakta runtime.
+
+**Verified:** `e2e-ai.mjs` terhadap Neon: POST 201 → `after()` → `SUCCESS`,
+`provider=gemini`, `model=gemini-3.5-flash-lite`, `BRANDING/HIGH`, summary Bahasa Indonesia.
+`gemini-3.5-flash-lite` 200 via raw REST; `gemini-3.8-flash` 503.

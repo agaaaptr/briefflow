@@ -32,3 +32,25 @@ export const briefSchema = z.object({
 });
 
 export type BriefInput = z.infer<typeof briefSchema>;
+
+// ---- AI output (schema minimal dari brief.md) ----
+export const SERVICE_CATEGORIES = [
+  "Branding",
+  "Website",
+  "Mobile App",
+  "AI Automation",
+  "Social Media",
+  "Lainnya",
+] as const;
+
+export const PRIORITIES = ["High", "Medium", "Low"] as const;
+
+export const aiResultSchema = z.object({
+  summary: z.string().min(1),
+  service_category: z.enum(SERVICE_CATEGORIES),
+  priority: z.enum(PRIORITIES),
+  priority_reason: z.string().min(1),
+  missing_info: z.array(z.string()),
+});
+
+export type AiResult = z.infer<typeof aiResultSchema>;

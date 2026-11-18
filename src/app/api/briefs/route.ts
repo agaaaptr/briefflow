@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createBrief } from "@/lib/briefs";
+import { createBrief, processBrief } from "@/lib/briefs";
 import { rateLimit } from "@/lib/rate-limit";
 import { briefSchema } from "@/lib/schema";
 
@@ -30,6 +30,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const brief = await createBrief(parsed.data);
+  let brief;
+  try {
+    brief = await createBrief(parsed.data);
+  } catch {
+    return NextResponse.json(
+      { error: "Gagal menyimpan brief. Coba lagi." },
+      { status: 500 },
+    );
+  }
+
+  // T4: diproses langsung (awaited). T5 memindahkan ini ke after() agar
+  // response tidak menunggu LLM.
+  await processBrief(brief.id);
+
   return NextResponse.json({ id: brief.id }, { status: 201 });
 }

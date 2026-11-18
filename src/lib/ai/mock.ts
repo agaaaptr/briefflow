@@ -5,7 +5,7 @@ import type { SummaryInput } from "./prompt";
 // dan sebagai fallback saat kuota Gemini habis — selalu ditandai provider "mock".
 
 const CATEGORY_RULES: [RegExp, AiResult["service_category"]][] = [
-  [/app|android|ios|mobile/i, "Mobile App"],
+  [/\bapp\b|android|ios|mobile/i, "Mobile App"],
   [/otomatis|chatbot|agent|\bai\b/i, "AI Automation"],
   [/social|instagram|tiktok|konten/i, "Social Media"],
   [/web|situs|landing|company profile|e-?commerce/i, "Website"],

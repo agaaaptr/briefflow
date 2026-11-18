@@ -3,7 +3,9 @@
 FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# npm install (bukan npm ci): lockfile yang digenerate di macOS memangkas
+# optional dep wasm32-wasi, sehingga `npm ci` gagal di container linux (alpine).
+RUN npm install --no-audit --no-fund
 
 FROM node:24-alpine AS builder
 WORKDIR /app

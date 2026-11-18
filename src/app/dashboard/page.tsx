@@ -4,6 +4,7 @@ import {
   PipelineBadge,
   PriorityBadge,
 } from "@/components/badges";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { listBriefs, parseFilter } from "@/lib/briefs";
 import { CATEGORY_LABELS, PRIORITY_LABELS } from "@/lib/labels";
 
@@ -25,6 +26,11 @@ export default async function DashboardPage({
 
   return (
     <div>
+      <AutoRefresh
+        active={briefs.some(
+          (b) => b.aiStatus === "PENDING" || b.aiStatus === "PROCESSING",
+        )}
+      />
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-slate-900">

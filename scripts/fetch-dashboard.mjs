@@ -80,5 +80,28 @@ const ok2 = r2.status >= 300 && r2.status < 400;
 if (!ok2) failed++;
 console.log(`${ok2 ? "PASS" : "FAIL"} cookie sesi invalid -> redirect (status=${r2.status})`);
 
+// halaman detail brief pertama memuat data form + hasil AI + tombol proses ulang
+const listHtml = await (
+  await fetch(`${BASE}/dashboard`, { headers: { cookie }, redirect: "manual" })
+).text();
+const firstDetail = listHtml.match(/\/dashboard\/briefs\/[a-z0-9]+/i)?.[0];
+if (firstDetail) {
+  const dr = await fetch(BASE + firstDetail, {
+    headers: { cookie },
+    redirect: "manual",
+  });
+  const dhtml = await dr.text();
+  const ok3 =
+    dr.status === 200 &&
+    dhtml.includes("Hasil AI") &&
+    dhtml.includes("Proses ulang AI") &&
+    dhtml.includes("Pipeline");
+  if (!ok3) failed++;
+  console.log(`${ok3 ? "PASS" : "FAIL"} detail brief memuat hasil AI + aksi (status=${dr.status})`);
+} else {
+  failed++;
+  console.log("FAIL tidak menemukan link detail brief");
+}
+
 console.log(failed ? `\n${failed} FAILED` : "\nall PASS");
 process.exit(failed ? 1 : 0);

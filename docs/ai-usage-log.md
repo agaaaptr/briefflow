@@ -1,0 +1,59 @@
+# AI Usage Log
+
+> Wajib dari brief (README). Format 5-field (Tool / Asked for / Accepted / Changed /
+> Verified) dari litman-books — "Changed" dan "Verified" adalah dua baris yang dinilai.
+> Entri diisi **real-time selama build**, bukan di-retrofit. Ini adalah seed dari sesi
+> perencanaan; lanjutkan di sesi build.
+
+---
+
+## 2026-11-18 — Requirements analysis & architecture planning
+
+**Tool:** Claude Code (model Transformer) — session planning + 1 workflow (8 research subagents).
+
+**Asked for:** Analyze the Fugo technical-test brief; do web research (stack, LLM
+providers, structured-output tooling, auth, async processing, deploy/DB, prior art,
+rubric mapping) and propose an architecture.
+
+**Accepted:**
+- Requirements decomposition & the 4-flow shape (form → AI → dashboard → deploy).
+- Research-backed patterns: Route Handler for the public API + Server Actions for
+  internal mutations; shared Zod schema; `after()` for async; iron-session + bcryptjs
+  for single-admin auth; hybrid storage (typed columns + jsonb); Vercel + Neon free tier.
+- The 5-field AI-usage-log template and rubric-mapped build checklist.
+- (bulk of research findings; ~most survived — see `docs/research.md`.)
+
+**Changed / overrode:**
+- Research recommended **Claude Haiku over Gemini** for the live demo; I kept **Gemini
+  (free, per "zero cost" requirement)** but added a **deterministic mock fallback** to
+  neutralize the free-tier RPD-quota risk the research itself flagged. Not a blind
+  accept of either recommendation — a constraint-aware middle path.
+- Several version/model IDs in the research (Next.js 16.x, `proxy.ts`, Gemini flash
+  model id, iron-session 9.x, AI SDK v7) are marked `[VERIFY]` rather than trusted
+  verbatim — the agents could hallucinate specifics.
+- Rejected over-engineering suggestions (queue services, TanStack Table, NextAuth,
+  react-hook-form) as out of scope for a sub-24h MVP.
+
+**Verified:**
+- Cross-checked the Gemini free-tier RPD/reset claim across multiple sources in the
+  same topic (freellm.net + session reasoning) before flagging it to the user.
+- Confirmed the "no public tech stack at Fugo" claim (DNS/curl checks in prior-art
+  topic) before concluding the "stack bebas" framing is genuine.
+
+---
+
+## (Sesi build — mulai 2026-11-18 malam; tambahkan entri per sesi)
+
+_Template per entri:_
+```
+## YYYY-MM-DD — <title>
+**Tool:** ...
+**Asked for:** ...
+**Accepted:** ... (file + perkiraan % yang dipakai)
+**Changed:** ... (edit + kenapa)
+**Verified:** ... (tes/cek + requirement id)
+```
+
+_Contoh yang WAJIB dicatat saat build (minimal 2 momen menolak/mengoreksi output AI):_
+- koreksi prompt/fallback mock saat output Gemini tidak match enum.
+- menolak snippet yang mengabaikan validasi server-side / revalidate-before-redirect.

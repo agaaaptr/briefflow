@@ -1,0 +1,22 @@
+# dependencies / build
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# env & secrets (commit .env.example, never .env)
+.env
+.env.*
+!.env.example
+
+# local agent tooling (noir / claude) — not part of the deliverable
+.noir/
+.claude/
+.mcp.json
+CLAUDE.md
+.npmignore
+.prettierignore
+
+# misc
+.DS_Store

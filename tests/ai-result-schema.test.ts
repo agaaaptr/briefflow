@@ -33,7 +33,8 @@ describe("aiResultSchema (validasi output AI)", () => {
   });
 
   it("menolak field wajib yang hilang (priority_reason)", () => {
-    const { priority_reason: _omit, ...rest } = valid;
+    const { priority_reason, ...rest } = valid;
+    void priority_reason;
     const r = aiResultSchema.safeParse(rest);
     expect(r.success).toBe(false);
   });

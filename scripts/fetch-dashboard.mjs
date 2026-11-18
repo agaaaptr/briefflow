@@ -28,8 +28,8 @@ async function waitForServer(url, timeoutMs = 30_000) {
 }
 
 const sealed = await sealData(
-  { email: env.ADMIN_EMAIL },
-  { password: env.SESSION_SECRET },
+  { email: process.env.ADMIN_EMAIL ?? env.ADMIN_EMAIL },
+  { password: process.env.SESSION_SECRET ?? env.SESSION_SECRET },
 );
 const cookie = `briefflow_session=${sealed}`;
 

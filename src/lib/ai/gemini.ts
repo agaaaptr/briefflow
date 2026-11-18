@@ -25,6 +25,30 @@ export class InvalidAiOutputError extends Error {
   }
 }
 
+// Ditulis manual sebagai OpenAPI subset — nilai enum diambil dari konstanta
+// yang sama dengan aiResultSchema (ada test yang menjaga konsistensinya).
+export const GEMINI_RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    summary: { type: Type.STRING },
+    service_category: {
+      type: Type.STRING,
+      format: "enum",
+      enum: [...SERVICE_CATEGORIES],
+    },
+    priority: { type: Type.STRING, format: "enum", enum: [...PRIORITIES] },
+    priority_reason: { type: Type.STRING },
+    missing_info: { type: Type.ARRAY, items: { type: Type.STRING } },
+  },
+  required: [
+    "summary",
+    "service_category",
+    "priority",
+    "priority_reason",
+    "missing_info",
+  ],
+} as const;
+
 export async function summarizeWithGemini(
   input: SummaryInput,
   repairFeedback?: string,
@@ -47,27 +71,7 @@ export async function summarizeWithGemini(
     contents: prompt,
     config: {
       responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          summary: { type: Type.STRING },
-          service_category: {
-            type: Type.STRING,
-            format: "enum",
-            enum: [...SERVICE_CATEGORIES],
-          },
-          priority: { type: Type.STRING, format: "enum", enum: [...PRIORITIES] },
-          priority_reason: { type: Type.STRING },
-          missing_info: { type: Type.ARRAY, items: { type: Type.STRING } },
-        },
-        required: [
-          "summary",
-          "service_category",
-          "priority",
-          "priority_reason",
-          "missing_info",
-        ],
-      },
+      responseSchema: GEMINI_RESPONSE_SCHEMA,
       abortSignal: AbortSignal.timeout(30_000),
     },
   });

@@ -31,6 +31,9 @@ CLAUDE.md
 .npmignore
 .prettierignore
 
+# local study notes — not part of the deliverable
+.notes/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
